@@ -40,11 +40,11 @@ namespace SalesWebMvc.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var departments =  await _departmentService.FindAllAsync();
+                var departments = await _departmentService.FindAllAsync();
                 var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
                 return View(viewModel);
             }
-           await _sellerService.InsertAsync(seller);
+            await _sellerService.InsertAsync(seller);
             return RedirectToAction(nameof(Index));
         }
         public async Task<IActionResult> Delete(int? id)
@@ -65,11 +65,18 @@ namespace SalesWebMvc.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-           await _sellerService.RemoveAsync(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _sellerService.RemoveAsync(id);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (IntegrityException e)
+            {
+                return RedirectToAction(nameof(Error), new { message = e.Message });
+            }
         }
 
-        public async Task <IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
@@ -78,7 +85,7 @@ namespace SalesWebMvc.Controllers
             var obj = await _sellerService.FindByIdAsync(id.Value);
             if (obj == null)
             {
-                return RedirectToAction(nameof(Error), new { message = "Id not found" }); 
+                return RedirectToAction(nameof(Error), new { message = "Id not found" });
             }
             return View(obj);
         }
@@ -86,7 +93,7 @@ namespace SalesWebMvc.Controllers
         {
             if (id == null)
             {
-                return RedirectToAction(nameof(Error), new { message = "Id not provided" }); 
+                return RedirectToAction(nameof(Error), new { message = "Id not provided" });
             }
             var obj = await _sellerService.FindByIdAsync(id.Value);
             if (obj == null)
@@ -121,9 +128,9 @@ namespace SalesWebMvc.Controllers
             {
                 return RedirectToAction(nameof(Error), new { message = e.Message });
             }
-            
+
         }
-        public IActionResult Error (string message)
+        public IActionResult Error(string message)
         {
             var viewModel = new ErrorViewModel
             {
